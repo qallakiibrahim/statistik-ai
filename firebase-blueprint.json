@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "DataPoint": {
+      "title": "Production Data Point",
+      "description": "A single measurement point from the production line",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "value": { "type": "number" },
+        "metric": { "type": "string" },
+        "operator": { "type": "string" }
+      },
+      "required": ["timestamp", "value", "metric"]
+    },
+    "AnalysisReport": {
+      "title": "AI Analysis Report",
+      "description": "An AI-generated analysis of production data",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["RÖD", "GUL", "GRÖN"] },
+        "metric": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["timestamp", "content", "status", "metric", "userId"]
+    }
+  },
+  "firestore": {
+    "/production_data/{dataId}": {
+      "schema": "DataPoint",
+      "description": "Collection of all production measurements"
+    },
+    "/reports/{reportId}": {
+      "schema": "AnalysisReport",
+      "description": "Historical AI reports"
+    }
+  }
+}

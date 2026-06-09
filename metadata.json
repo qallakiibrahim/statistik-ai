@@ -1,0 +1,5 @@
+{
+  "name": "Remix: Statistik-Ai-analys",
+  "description": "An AI-powered production analysis dashboard for statistical process control (Cp/Cpk), anomaly detection, and prescriptive recommendations.",
+  "requestFramePermissions": []
+}

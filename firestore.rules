@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Validation for DataPoint
+    function isValidDataPoint(data) {
+      return data.keys().hasAll(['timestamp', 'value', 'metric']) &&
+             data.keys().size() <= 10 &&
+             data.timestamp is string &&
+             data.value is number &&
+             data.metric is string && data.metric.size() <= 50;
+    }
+
+    // Validation for AnalysisReport
+    function isValidReport(data) {
+      return data.keys().hasAll(['timestamp', 'content', 'status', 'metric', 'userId']) &&
+             data.keys().size() <= 10 &&
+             data.timestamp is string &&
+             data.content is string && data.content.size() <= 100000 &&
+             data.status is string && data.status.size() <= 64 &&
+             data.metric is string &&
+             data.userId == request.auth.uid;
+    }
+
+    match /production_data/{dataId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(dataId) && isValidDataPoint(incoming());
+      allow update, delete: if isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(reportId) && isValidReport(incoming());
+      allow update, delete: if isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via Firebase Console or special script
+    }
+  }
+}
